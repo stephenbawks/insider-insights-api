@@ -27,7 +27,7 @@ def get_holiday_dates() -> List[dict]:
 
 
 @lru_cache()
-@app.get("/holidays", status_code=status.HTTP_200_OK, content_type="application/json")
+@app.get("/holidays", status_code=200, content_type="application/json")
 async def is_holiday():
     return pathlib.Path("holidays.txt").read_text()
 
