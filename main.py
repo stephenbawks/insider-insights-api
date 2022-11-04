@@ -27,7 +27,7 @@ def get_holiday_dates() -> List[dict]:
 
 
 @lru_cache()
-@app.get("/is_holiday", status_code=200)
+@app.get("/holidays", status_code=200)
 async def is_holiday():
     return pathlib.Path("holidays.txt").read_text()
 
