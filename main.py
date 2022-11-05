@@ -150,12 +150,13 @@ async def read_item(ticker_symbol):
 
     yahoo_ticker_response = query_yahoo_quote_summary(ticker_symbol=ticker_upper)
     if yahoo_ticker_response is None:
-        body = {
+        missing_ticker = {
             "ticker": ticker_upper,
             "error": "Cannot find ticker"
         }
+        return json.dumps(missing_ticker)
 
-    return json.dumps(body)
+    return json.dumps(yahoo_ticker_response)
 
 @app.get("/", status_code=200)
 async def root():
