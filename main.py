@@ -156,7 +156,7 @@ async def read_item(ticker_symbol):
         }
         return Response(status_code=404, media_type="application/json", content=json.dumps(missing_ticker))
 
-    return json.dumps(yahoo_ticker_response)
+    return yahoo_ticker_response
 
 @app.get("/", status_code=200)
 async def root():
