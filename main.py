@@ -140,7 +140,7 @@ async def is_holiday():
     Returns:
         _type_: _description_
     """
-    return json.loads(pathlib.Path("holidays.txt").read_text())
+    return pathlib.Path("holidays.txt").read_text()
 
 
 @app.get("/ticker/{ticker_symbol}", status_code=200)
