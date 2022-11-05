@@ -21,19 +21,6 @@ from fastapi import FastAPI, status, Response, HTTPException
 
 finance_api_key = os.environ.get("finance_api_api_key")
 
-try:
-    onprem_historical = pymysql.connect(
-        host="69.10.161.9",
-        user="root",
-        password="r@gn@r0k10",
-        db="exofficio",
-        cursorclass=pymysql.cursors.DictCursor,
-    )
-except pymysql.Error as err:
-    print(f"Error connecting to OnPrem Server: {err}")
-
-
-
 app = FastAPI()
 
 def multiply_by_100(value: float) -> Union[float, None]:
@@ -173,6 +160,15 @@ def get_close_price_date(ticker_symbol: str, lookup_date: str) -> Union[float, N
     Returns:
         Union[float, None]: Close price for a given date or None if no data is found
     """
+
+    onprem_historical = pymysql.connect(
+        host="69.10.161.9",
+        user="root",
+        password="r@gn@r0k10",
+        db="exofficio",
+        cursorclass=pymysql.cursors.DictCursor,
+    )
+
     with onprem_historical.cursor() as cursor:
         # find_starting_date = f"select last from historical where sec_id = '{sec_id}' and date = '{lookup_date}';"
         find_starting_date = f"select last from historical where ticker = '{ticker_symbol}' and date = '{lookup_date}';"
