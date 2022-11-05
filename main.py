@@ -10,14 +10,81 @@ from datetime import date, datetime, timedelta
 from functools import lru_cache
 from typing import List, Optional, Union
 
-from .helper_functions import divide_by_1000, divide_by_1000000, multiply_by_100, convert_datetime
-
 from fastapi import FastAPI, status, Response, HTTPException
 
 
 
 
 app = FastAPI()
+
+def multiply_by_100(value: float) -> Union[float, None]:
+    """
+    Multiply a value by 100
+
+    Args:
+        value (float): The value to multiply by 100
+
+    Returns:
+        float: The value multiplied by 100 or None if the value is None
+
+    """
+
+    try:
+        return value * 100
+    except TypeError:
+        return None
+
+
+def divide_by_1000(value: float) -> Union[float, None]:
+    """
+    Multiply a value by 1000
+
+    Args:
+        value (float): The value to multiply by 1000
+
+    Returns:
+        float: The value divded by 1000 or None if the value is None
+
+    """
+
+    try:
+        return value / 1000
+    except TypeError:
+        return None
+
+
+def divide_by_1000000(value: float) -> Union[float, None]:
+    """
+    Multiply a value by 1000000
+
+    Args:
+        value (float): The value to multiply by 1000000
+
+    Returns:
+        float: The value divded by 1000000 or None if the value is None
+
+    """
+
+    try:
+        return value / 1000000
+    except TypeError:
+        return None
+
+def convert_datetime(dict_object: dict) -> dict:
+    """
+    Converts datetime objects to strings
+
+    Args:
+        dict_object (dict): Dictionary object to convert
+
+    Returns:
+        dict: _description_
+    """
+    for key in dict_object:
+        if isinstance(dict_object[key], (datetime, date)):
+            dict_object[key] = dict_object[key].strftime("%Y-%m-%d")
+    return dict_object
+
 
 
 # def query_yahoo_quote_summary(ticker_symbol: str) -> Union[dict, None]:
@@ -94,4 +161,8 @@ async def is_holiday():
 
 @app.get("/", status_code=200)
 async def root():
+    """
+    Main
+
+    """
     return {"message": "Hello World!!!!!!!!!!!!!!!!"}
