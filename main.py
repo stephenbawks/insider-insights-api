@@ -154,7 +154,7 @@ async def read_item(ticker_symbol):
             "ticker": ticker_upper,
             "error": "Cannot find ticker"
         }
-        return json.dumps(missing_ticker)
+        return Response(status_code=404, media_type="application/json", content=json.dumps(missing_ticker))
 
     return json.dumps(yahoo_ticker_response)
 
