@@ -2,9 +2,12 @@
 API
 """
 
-import pathlib
-import json
 from functools import lru_cache
+from loguru import logger
+import httpx
+import json
+import os
+import pathlib
 
 from datetime import date, datetime, timedelta
 from functools import lru_cache
@@ -13,7 +16,7 @@ from typing import List, Optional, Union
 from fastapi import FastAPI, status, Response, HTTPException
 
 
-
+finance_api_key = os.environ.get("finance_api_api_key")
 
 app = FastAPI()
 
@@ -87,36 +90,33 @@ def convert_datetime(dict_object: dict) -> dict:
 
 
 
-# def query_yahoo_quote_summary(ticker_symbol: str) -> Union[dict, None]:
-#     """
-#     Query the Yahoo Financial API to pull back financial details for a single ticker symbol
+def query_yahoo_quote_summary(ticker_symbol: str) -> Union[dict, None]:
+    """
+    Query the Yahoo Financial API to pull back financial details for a single ticker symbol
 
-#     Args:
-#         ticker_symbol (str): The ticker symbol to pull information about.
-#     Returns:
-#         dict: The financial data for the ticker
-#     """
+    Args:
+        ticker_symbol (str): The ticker symbol to pull information about.
+    Returns:
+        dict: The financial data for the ticker
+    """
 
-#     url = f"https://yfapi.net/v11/finance/quoteSummary/{ticker_symbol}"
+    url = f"https://yfapi.net/v11/finance/quoteSummary/{ticker_symbol}"
 
-#     headers = {
-#         "X-API-KEY": finance_api_key,
-#         "accept": "application/json"
-#     }
+    headers = {
+        "X-API-KEY": finance_api_key,
+        "accept": "application/json"
+    }
 
-#     query_string = {"modules":"defaultKeyStatistics,assetProfile,summaryDetail,financialData,price,earnings,earningsHistory"}
+    query_string = {"modules":"defaultKeyStatistics,assetProfile,summaryDetail,financialData,price,earnings,earningsHistory"}
 
-#     response = http.request('GET', url, headers=headers, fields=query_string)
-#     print(f"Response Status Code: {response.status}")
+    response = httpx.get(url, headers=headers, params=query_string)
+    response_json = json.loads(response.data.decode('utf-8'))
 
-#     print(response.data.decode('utf-8'))
-#     response_decoded = json.loads(response.data.decode('utf-8'))
+    if response_json.get("quoteSummary").get("result") is None:
+        print(response_json)
+        return None
 
-#     if response_decoded.get("quoteSummary").get("result") is None:
-#         print(response_decoded)
-#         return None
-
-#     return response_decoded
+    return response_json
 
 
 @lru_cache()
@@ -143,21 +143,19 @@ async def is_holiday():
     return pathlib.Path("holidays.txt").read_text()
 
 
-# @app.get("/ticker/{ticker_symbol}", status_code=200)
-# async def read_item(ticker_symbol):
+@app.get("/ticker/{ticker_symbol}", status_code=200)
+async def read_item(ticker_symbol):
 
-#     ticker_upper = ticker_symbol.upper()
+    ticker_upper = ticker_symbol.upper()
 
-#     yahoo_ticker_response = query_yahoo_quote_summary(ticker_symbol=ticker_upper)
-#     if yahoo_ticker_response is None:
-#         raise HTTPException(status_code=404, detail=body)
+    yahoo_ticker_response = query_yahoo_quote_summary(ticker_symbol=ticker_upper)
+    if yahoo_ticker_response is None:
+        body = {
+            "ticker": ticker_upper,
+            "error": "Cannot find ticker"
+        }
 
-#         body = {
-#             "ticker": ticker_upper,
-#             "error": "Cannot find ticker"
-#         }
-
-#     return json.dumps(body)
+    return json.dumps(body)
 
 @app.get("/", status_code=200)
 async def root():
