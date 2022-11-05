@@ -1,3 +1,5 @@
+# pylint: disable=import-error,invalid-name,line-too-long
+
 """
 API
 """
@@ -8,6 +10,7 @@ import httpx
 import json
 import os
 import pathlib
+import pymysql.cursors
 
 from datetime import date, datetime, timedelta
 from functools import lru_cache
@@ -17,6 +20,19 @@ from fastapi import FastAPI, status, Response, HTTPException
 
 
 finance_api_key = os.environ.get("finance_api_api_key")
+
+try:
+    onprem_historical = pymysql.connect(
+        host="69.10.161.9",
+        user="root",
+        password="r@gn@r0k10",
+        db="exofficio",
+        cursorclass=pymysql.cursors.DictCursor,
+    )
+except pymysql.Error as err:
+    print(f"Error connecting to OnPrem Server: {err}")
+
+
 
 app = FastAPI()
 
@@ -113,8 +129,11 @@ def query_yahoo_quote_summary(ticker_symbol: str) -> Union[dict, None]:
     response_json = json.loads(response.text)
 
     if response_json.get("quoteSummary").get("result") is None:
-        print(response_json)
-        return None
+        missing_ticker = {
+            "ticker": ticker_symbol,
+            "error": "Cannot find ticker"
+        }
+        return Response(status_code=404, media_type="application/json", content=json.dumps(missing_ticker))
 
     return response_json
 
@@ -131,7 +150,6 @@ def get_holiday_dates() -> List[dict]:
     file_contents = pathlib.Path("holidays.txt").read_text()
     return json.loads(file_contents)
 
-
 @app.get("/holidays", status_code=200)
 async def is_holiday():
     """
@@ -143,18 +161,124 @@ async def is_holiday():
     return pathlib.Path("holidays.txt").read_text()
 
 
+@lru_cache()
+def get_close_price_date(ticker_symbol: str, lookup_date: str) -> Union[float, None]:
+    """
+    Get the close price for a given date
+
+    Args:
+        sec_id (str): The SEC ID for the ticker symbol
+        lookup_date (str): The date to lookup
+
+    Returns:
+        Union[float, None]: Close price for a given date or None if no data is found
+    """
+    with onprem_historical.cursor() as cursor:
+        # find_starting_date = f"select last from historical where sec_id = '{sec_id}' and date = '{lookup_date}';"
+        find_starting_date = f"select last from historical where ticker = '{ticker_symbol}' and date = '{lookup_date}';"
+        cursor.execute(find_starting_date)
+        result = cursor.fetchone()
+        print(result)
+        if result is None:
+            return None
+
+        close_price = result.get("last") or None
+        print(f"Date: {lookup_date} - Close Price: {close_price}")
+
+        return close_price
+
+def calculate_change_percentage(start_close_price: str, lookup_date: str, ticker_symbol: str) -> Union[float, None]:
+    """
+    Calculate the percentage change between the start close price and the lookup date
+
+    Args:
+        start_close_price (str): Starting close price
+        lookup_date (str): Date to lookup
+        sec_id (str): SEC ID
+
+    Returns:
+        Union[float, None]: Average difference or None if no data is found
+    """
+
+    print(f"Starting Close Price: {start_close_price} - Lookup Date: {lookup_date} - SEC ID: {ticker_symbol}")
+
+    with onprem_historical.cursor() as cursor:
+
+        find_specific_date = f"select last from historical where ticker = '{ticker_symbol}' and date = '{lookup_date}';"
+        cursor.execute(find_specific_date)
+        result = cursor.fetchone()
+        print(result)
+        if result is None:
+            return 0
+
+        historical_close = result.get("last")
+        print(f"Previous Date Close: {lookup_date} - Close Price: {historical_close}")
+
+        return ((start_close_price / historical_close) - 1) * 100
+
+
+
+@app.get("/percentchange/{ticker_symbol}/{start_date}")
+def calculate_change_percentages(ticker_symbol: str, start_date: Optional[str] = None) -> dict:
+    ticker_upper = ticker_symbol.upper()
+    logger.info(f"Looking up ticker symbol {ticker_upper}")
+
+    holidays = get_holiday_dates()
+
+    # Check to see if the date is on a weekend day
+    datetime_start_date = datetime.strptime(start_date, "%Y-%m-%d")
+    if datetime_start_date.weekday() > 4:
+        # Date specific is on a weekend, return and error
+        body = {
+            "start_date": start_date,
+            "message": "Date is on a weekend"
+        }
+        return Response(status_code=400, media_type="application/json", content=json.dumps(body))
+
+    if start_date in holidays:
+        # Date specific is on a holiday, return and error
+        body = {
+            "start_date": start_date,
+            "message": "Date is on a holiday"
+        }
+        return Response(status_code=400, media_type="application/json", content=json.dumps(body))
+
+    close_price = get_close_price_date(ticker_symbol=ticker_upper, lookup_date=start_date)
+    if close_price is None:
+        # Cannot find a close price for the date, return an error
+        body = {
+            "start_date": start_date,
+            "error": "Cannot find a close price for the date"
+        }
+        return Response(status_code=404, media_type="application/json", content=json.dumps(body))
+
+    four_weeks_ago = (datetime_start_date - timedelta(weeks=4)).strftime("%Y-%m-%d")
+    thirteen_weeks_ago = (datetime_start_date - timedelta(weeks=13)).strftime("%Y-%m-%d")
+    twenty_six_weeks_ago = (datetime_start_date - timedelta(weeks=26)).strftime("%Y-%m-%d")
+    fifty_two_weeks_ago = (datetime_start_date - timedelta(weeks=52)).strftime("%Y-%m-%d")
+
+    four_week_change = calculate_change_percentage(start_close_price=close_price, lookup_date=four_weeks_ago, ticker_symbol=ticker_upper)
+    thirteen_week_change = calculate_change_percentage(start_close_price=close_price, lookup_date=thirteen_weeks_ago, ticker_symbol=ticker_upper)
+    twenty_six_week_change = calculate_change_percentage(start_close_price=close_price, lookup_date=twenty_six_weeks_ago, ticker_symbol=ticker_upper)
+    fifty_two_week_change = calculate_change_percentage(start_close_price=close_price, lookup_date=fifty_two_weeks_ago, ticker_symbol=ticker_upper)
+
+    body = {
+        "ticker": ticker_upper,
+        "start_date": start_date,
+        "4wk_change": four_week_change,
+        "13wk_change": thirteen_week_change,
+        "26wk_change": twenty_six_week_change,
+        "52wk_change": fifty_two_week_change
+    }
+    return Response(status_code=200, media_type="application/json", content=json.dumps(body))
+
+
 @app.get("/ticker/{ticker_symbol}", status_code=200)
 async def read_item(ticker_symbol):
 
     ticker_upper = ticker_symbol.upper()
 
     yahoo_ticker_response = query_yahoo_quote_summary(ticker_symbol=ticker_upper)
-    if yahoo_ticker_response is None:
-        missing_ticker = {
-            "ticker": ticker_upper,
-            "error": "Cannot find ticker"
-        }
-        return Response(status_code=404, media_type="application/json", content=json.dumps(missing_ticker))
 
     ticker_details = yahoo_ticker_response.get("quoteSummary").get("result")[0]
     asset_profile = ticker_details.get("assetProfile") or {"assetProfile": {}}

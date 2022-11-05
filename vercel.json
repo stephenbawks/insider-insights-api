@@ -6,6 +6,7 @@
 		{ "source": "/", "destination": "main.py" },
 		{ "source": "/holidays", "destination": "main.py" },
 		{ "source": "/ticker/:ticker_symbol", "destination": "main.py" },
+		{ "source": "/percentchange/:ticker_symbol/:start_date", "destination": "main.py" },
 		{ "source": "/docs", "destination": "main.py" },
 		{ "source": "/openapi.json", "destination": "main.py" }
 	]
