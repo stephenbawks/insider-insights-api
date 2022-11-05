@@ -2,11 +2,11 @@
 	"version": 2,
 	"public": false,
 	"builds": [{ "src": "main.py", "use": "@vercel/python" }],
-	"routes": [
-		{ "src": "/", "dest": "main.py" },
-        { "src": "/holidays", "dest": "main.py" },
-		{ "src": "/ticker", "dest": "main.py" },
-		{ "src": "/docs", "dest": "main.py" },
-		{ "src": "/openapi.json", "dest": "main.py" }
+	"rewrites": [
+		{ "source": "/", "destination": "main.py" },
+		{ "source": "/holidays", "destination": "main.py" },
+		{ "source": "/ticker/:ticker_symbol", "destination": "main.py" },
+		{ "source": "/docs", "destination": "main.py" },
+		{ "source": "/openapi.json", "destination": "main.py" }
 	]
 }
