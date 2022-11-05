@@ -110,7 +110,7 @@ def query_yahoo_quote_summary(ticker_symbol: str) -> Union[dict, None]:
     query_string = {"modules":"defaultKeyStatistics,assetProfile,summaryDetail,financialData,price,earnings,earningsHistory"}
 
     response = httpx.get(url, headers=headers, params=query_string)
-    response_json = json.loads(response.data.decode('utf-8'))
+    response_json = json.loads(response.text)
 
     if response_json.get("quoteSummary").get("result") is None:
         print(response_json)
