@@ -15,8 +15,6 @@ import pathlib
 import pymysql.cursors
 
 import psycopg2
-from psycopg2.errors import SerializationFailure
-import psycopg2.extras
 
 from datetime import date, datetime, timedelta
 from functools import lru_cache
