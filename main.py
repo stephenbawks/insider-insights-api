@@ -19,7 +19,7 @@ from typing import List, Optional, Union
 
 from fastapi import FastAPI, status, Response, HTTPException
 
-
+supabase_db_password = "xPXu@r3MdQ!2jhH"
 finance_api_key = os.environ.get("finance_api_api_key")
 redis_host = os.environ.get("redis_host")
 
@@ -133,15 +133,14 @@ def query_yahoo_quote_summary(ticker_symbol: str) -> Union[dict, None]:
     return response_json
 
 
-
 @lru_cache()
 @app.get("/holidays", status_code=200)
-async def is_holiday():
+async def is_holiday() -> List[dict]:
     """
-    Get the list of holidays
+    Get the list of holidays that are stored in a text file
 
     Returns:
-        _type_: _description_
+        List[dict]: List of holidays
     """
     holidays = pathlib.Path("holidays.txt").read_text()
     return Response(status_code=200, media_type="application/json", content=holidays)
