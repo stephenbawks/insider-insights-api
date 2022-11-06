@@ -6,7 +6,7 @@ API
 
 from functools import lru_cache
 from loguru import logger
-from data.database import SupabaseDB
+# from data.database import SupabaseDB
 
 import httpx
 import json
