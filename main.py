@@ -149,8 +149,9 @@ def write_to_db(data: dict) -> None:
     shortname = data.get("shortName")
 
     with conn.cursor() as cursor:
-        get_sec_id = f"INSERT INTO ticker_data (ticker, shortName) VALUES ('{ticker}', '{shortname}');"
+        get_sec_id = f"INSERT INTO ticker_data (ticker, shortName) VALUES ('{ticker}', '{shortname}') on CONFLICT (ticker) do nothing;"
         cursor.execute(get_sec_id)
+        conn.commit()
 
 
 def query_yahoo_quote_summary(ticker_symbol: str) -> Union[dict, None]:
