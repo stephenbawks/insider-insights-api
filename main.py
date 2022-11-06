@@ -6,7 +6,7 @@ API
 
 from functools import lru_cache
 from loguru import logger
-# from supabase import create_client, Client
+from supabase import create_client, Client
 import httpx
 import json
 import os
@@ -116,7 +116,7 @@ def write_to_db(data: dict) -> None:
         data (dict): Data to write to the database
     """
 
-    supabase = supabase_api_auth()
+    supabase: Client = create_client(supabase_api_url, supabase_api_key)
     insert = supabase.table("historical").insert(data).execute()
 
 def query_yahoo_quote_summary(ticker_symbol: str) -> Union[dict, None]:
