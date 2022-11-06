@@ -12,6 +12,7 @@ import os
 import pathlib
 import pymysql.cursors
 import redis
+from supabase import create_client, Client
 
 from datetime import date, datetime, timedelta
 from functools import lru_cache
@@ -21,6 +22,9 @@ from fastapi import FastAPI, status, Response, HTTPException
 
 supabase_db_password = "xPXu@r3MdQ!2jhH"
 finance_api_key = os.environ.get("finance_api_api_key")
+supabase_api_url = os.environ.get("supabase_api_url")
+supabase_api_key = os.environ.get("supabase_api_key")
+
 redis_host = os.environ.get("redis_host")
 
 r = redis.Redis(
@@ -99,7 +103,27 @@ def convert_datetime(dict_object: dict) -> dict:
             dict_object[key] = dict_object[key].strftime("%Y-%m-%d")
     return dict_object
 
+@lru_cache()
+def supabase_api_auth() -> Client:
+    """
+    Create a Supabase API client
 
+    Returns:
+        Client: Supabase API client
+    """
+
+    return create_client(supabase_api_url, supabase_api_key)
+
+
+def write_to_db(data: dict) -> None:
+    """
+    Write data to the database
+
+    Args:
+        data (dict): Data to write to the database
+    """
+
+    insert = supabase.table("historical").insert(data).execute()
 
 def query_yahoo_quote_summary(ticker_symbol: str) -> Union[dict, None]:
     """
@@ -351,6 +375,8 @@ async def read_item(ticker_symbol):
         "dividendYield": multiply_by_100(value=summary_detail.get("dividendYield", {"dividendYield": {}}).get("raw")) or None
     }
 
+    data = {"ticker":ticker_upper, "shortName": price_detail.get("shortName") or None}
+    write_to_db(data)
     return Response(status_code=200, media_type="application/json", content=json.dumps(body))
 
 @app.get("/", status_code=200)
