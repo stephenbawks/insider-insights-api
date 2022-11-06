@@ -11,7 +11,6 @@ import json
 import os
 import pathlib
 import pymysql.cursors
-import redis
 from supabase import create_client, Client
 
 from datetime import date, datetime, timedelta
@@ -20,18 +19,12 @@ from typing import List, Optional, Union
 
 from fastapi import FastAPI, status, Response, HTTPException
 
-supabase_db_password = "xPXu@r3MdQ!2jhH"
+
+
 finance_api_key = os.environ.get("finance_api_api_key")
 supabase_api_url = os.environ.get("supabase_api_url")
 supabase_api_key = os.environ.get("supabase_api_key")
 
-redis_host = os.environ.get("redis_host")
-
-r = redis.Redis(
-    host= 'YOUR_ENDPOINT',
-    port= 'YOUR_PORT',
-    password= 'YOUR_PASSWORD'
-)
 
 app = FastAPI()
 
