@@ -11,6 +11,7 @@ import json
 import os
 import pathlib
 import pymysql.cursors
+import redis
 
 from datetime import date, datetime, timedelta
 from functools import lru_cache
@@ -20,6 +21,13 @@ from fastapi import FastAPI, status, Response, HTTPException
 
 
 finance_api_key = os.environ.get("finance_api_api_key")
+redis_host = os.environ.get("redis_host")
+
+r = redis.Redis(
+    host= 'YOUR_ENDPOINT',
+    port= 'YOUR_PORT',
+    password= 'YOUR_PASSWORD'
+)
 
 app = FastAPI()
 
@@ -145,7 +153,9 @@ async def is_holiday():
     Returns:
         _type_: _description_
     """
-    return pathlib.Path("holidays.txt").read_text()
+    holidays = pathlib.Path("holidays.txt").read_text()
+    return Response(status_code=200, media_type="application/json", content=json.dumps(holidays))
+
 
 
 @lru_cache()
