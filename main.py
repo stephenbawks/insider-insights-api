@@ -97,15 +97,15 @@ def convert_datetime(dict_object: dict) -> dict:
     return dict_object
 
 
-def write_to_db(data: dict) -> None:
-    """
-    Write data to the database
+# def write_to_db(data: dict) -> None:
+#     """
+#     Write data to the database
 
-    Args:
-        data (dict): Data to write to the database
-    """
+#     Args:
+#         data (dict): Data to write to the database
+#     """
 
-    insert = SupabaseDB.supabase.table("historical").insert(data).execute()
+#     insert = SupabaseDB.supabase.table("historical").insert(data).execute()
 
 def query_yahoo_quote_summary(ticker_symbol: str) -> Union[dict, None]:
     """
@@ -365,8 +365,8 @@ async def read_item(ticker_symbol):
         "dividendYield": multiply_by_100(value=summary_detail.get("dividendYield", {"dividendYield": {}}).get("raw")) or None
     }
 
-    data = {"ticker":ticker_upper, "shortName": "asdfsdf"}
-    write_to_db(data)
+    # data = {"ticker":ticker_upper, "shortName": "asdfsdf"}
+    # write_to_db(data)
     return Response(status_code=200, media_type="application/json", content=json.dumps(body))
 
 @app.get("/", status_code=200)
