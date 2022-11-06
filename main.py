@@ -6,7 +6,8 @@ API
 
 from functools import lru_cache
 from loguru import logger
-from supabase import create_client, Client
+from data.database import SupabaseDB
+
 import httpx
 import json
 import os
@@ -17,13 +18,12 @@ from datetime import date, datetime, timedelta
 from functools import lru_cache
 from typing import List, Optional, Union
 
-from fastapi import FastAPI, status, Response, HTTPException
+from fastapi import FastAPI, status, Request, Response, HTTPException
 
 
 
 finance_api_key = os.environ.get("finance_api_api_key")
-supabase_api_url = os.environ.get("supabase_api_url")
-supabase_api_key = os.environ.get("supabase_api_key")
+
 
 
 app = FastAPI()
@@ -96,17 +96,6 @@ def convert_datetime(dict_object: dict) -> dict:
             dict_object[key] = dict_object[key].strftime("%Y-%m-%d")
     return dict_object
 
-# @lru_cache()
-# def supabase_api_auth() -> Client:
-#     """
-#     Create a Supabase API client
-
-#     Returns:
-#         Client: Supabase API client
-#     """
-
-#     return create_client(supabase_api_url, supabase_api_key)
-
 
 def write_to_db(data: dict) -> None:
     """
@@ -116,8 +105,7 @@ def write_to_db(data: dict) -> None:
         data (dict): Data to write to the database
     """
 
-    supabase: Client = create_client(supabase_api_url, supabase_api_key)
-    insert = supabase.table("historical").insert(data).execute()
+    insert = SupabaseDB.supabase.table("historical").insert(data).execute()
 
 def query_yahoo_quote_summary(ticker_symbol: str) -> Union[dict, None]:
     """
@@ -369,7 +357,7 @@ async def read_item(ticker_symbol):
         "dividendYield": multiply_by_100(value=summary_detail.get("dividendYield", {"dividendYield": {}}).get("raw")) or None
     }
 
-    data = {"ticker":ticker_upper, "shortName": price_detail.get("shortName") or None}
+    data = {"ticker":ticker_upper, "shortName": "asdfsdf"}
     write_to_db(data)
     return Response(status_code=200, media_type="application/json", content=json.dumps(body))
 
