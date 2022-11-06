@@ -14,6 +14,10 @@ import os
 import pathlib
 import pymysql.cursors
 
+import psycopg2
+from psycopg2.errors import SerializationFailure
+import psycopg2.extras
+
 from datetime import date, datetime, timedelta
 from functools import lru_cache
 from typing import List, Optional, Union
@@ -21,8 +25,36 @@ from typing import List, Optional, Union
 from fastapi import FastAPI, status, Request, Response, HTTPException
 
 
-
+# insider-insights-user
+# a69izEWHHK2qTu4LCLz4hg
 finance_api_key = os.environ.get("finance_api_api_key")
+
+
+# conn = psycopg2.connect(
+#     host = 'free-tier14.aws-us-east-1.cockroachlabs.cloud',
+#     port = 26257,
+#     user = 'insider-insights-user',
+#     password = 'a69izEWHHK2qTu4LCLz4hg',
+#     sslrootcert = '/root.crt',
+#     database = 'historical_data',
+#     options = '--cluster=upset-drake-6457'
+# )
+
+# cursor = conn.cursor()
+# create_table = "CREATE TABLE IF NOT EXISTS ticker_data (id serial, ticker text, shortname text, PRIMARY KEY( id ));"
+# drop_table = "DROP TABLE ticker_data;"
+# cursor.execute(create_table)
+# cursor.execute("CREATE TABLE IF NOT EXISTS \"ticker_data\" (\"id\" serial,\"ticker\" text,\"shortname\" text,PRIMARY KEY( id ));")
+# cursor.execute("SELECT *;")
+
+# with conn.cursor() as cursor:
+#     get_sec_id = f"select id, ticker, shortName FROM ticker_data;"
+#     cursor.execute(get_sec_id)
+#     result = cursor.fetchone()
+#     if result is None:
+#         return None
+
+
 
 
 
@@ -97,15 +129,31 @@ def convert_datetime(dict_object: dict) -> dict:
     return dict_object
 
 
-# def write_to_db(data: dict) -> None:
-#     """
-#     Write data to the database
+def write_to_db(data: dict) -> None:
+    """
+    Write data to the database
 
-#     Args:
-#         data (dict): Data to write to the database
-#     """
+    Args:
+        data (dict): Data to write to the database
+    """
 
-#     insert = SupabaseDB.supabase.table("historical").insert(data).execute()
+    conn = psycopg2.connect(
+        host = 'free-tier14.aws-us-east-1.cockroachlabs.cloud',
+        port = 26257,
+        user = 'insider-insights-user',
+        password = 'a69izEWHHK2qTu4LCLz4hg',
+        sslrootcert = '/root.crt',
+        database = 'historical_data',
+        options = '--cluster=upset-drake-6457'
+    )
+
+    ticker = data.get("ticker")
+    shortname = data.get("shortName")
+
+    with conn.cursor() as cursor:
+        get_sec_id = f'INSERT INTO ticker_data (ticker, shortName) VALUES ("{ticker}", "{shortname}"));'
+        cursor.execute(get_sec_id)
+
 
 def query_yahoo_quote_summary(ticker_symbol: str) -> Union[dict, None]:
     """
@@ -365,8 +413,8 @@ async def read_item(ticker_symbol):
         "dividendYield": multiply_by_100(value=summary_detail.get("dividendYield", {"dividendYield": {}}).get("raw")) or None
     }
 
-    # data = {"ticker":ticker_upper, "shortName": "asdfsdf"}
-    # write_to_db(data)
+    data = {"ticker":ticker_upper, "shortName": price_detail.get("shortName")}
+    write_to_db(data)
     return Response(status_code=200, media_type="application/json", content=json.dumps(body))
 
 @app.get("/", status_code=200)
