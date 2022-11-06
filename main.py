@@ -133,17 +133,8 @@ def query_yahoo_quote_summary(ticker_symbol: str) -> Union[dict, None]:
     return response_json
 
 
+
 @lru_cache()
-def get_holiday_dates() -> List[dict]:
-    """
-    Opens a file that has officially listed holidays that the market is closed for
-
-    Returns:
-        List[dict]: List of holidays
-    """
-
-    return pathlib.Path("holidays.txt").read_text()
-
 @app.get("/holidays", status_code=200)
 async def is_holiday():
     """
