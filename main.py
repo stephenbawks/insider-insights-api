@@ -123,6 +123,7 @@ def write_to_db(data: dict) -> None:
         data (dict): Data to write to the database
     """
 
+    supabase = supabase_api_auth()
     insert = supabase.table("historical").insert(data).execute()
 
 def query_yahoo_quote_summary(ticker_symbol: str) -> Union[dict, None]:
