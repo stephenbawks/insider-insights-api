@@ -96,16 +96,16 @@ def convert_datetime(dict_object: dict) -> dict:
             dict_object[key] = dict_object[key].strftime("%Y-%m-%d")
     return dict_object
 
-@lru_cache()
-def supabase_api_auth() -> Client:
-    """
-    Create a Supabase API client
+# @lru_cache()
+# def supabase_api_auth() -> Client:
+#     """
+#     Create a Supabase API client
 
-    Returns:
-        Client: Supabase API client
-    """
+#     Returns:
+#         Client: Supabase API client
+#     """
 
-    return create_client(supabase_api_url, supabase_api_key)
+#     return create_client(supabase_api_url, supabase_api_key)
 
 
 def write_to_db(data: dict) -> None:
