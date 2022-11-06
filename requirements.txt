@@ -4,4 +4,4 @@ uvicorn
 loguru
 httpx
 pymysql
-supabase
+psycopg[binary]
