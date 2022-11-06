@@ -142,8 +142,7 @@ def get_holiday_dates() -> List[dict]:
         List[dict]: List of holidays
     """
 
-    file_contents = pathlib.Path("holidays.txt").read_text()
-    return json.loads(file_contents)
+    return pathlib.Path("holidays.txt").read_text()
 
 @app.get("/holidays", status_code=200)
 async def is_holiday():
