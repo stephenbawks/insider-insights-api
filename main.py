@@ -149,7 +149,7 @@ def write_to_db(data: dict) -> None:
     shortname = data.get("shortName")
 
     with conn.cursor() as cursor:
-        get_sec_id = f'INSERT INTO ticker_data (ticker, shortName) VALUES ("{ticker}", "{shortname}"));'
+        get_sec_id = f'INSERT INTO ticker_data (ticker, shortName) VALUES ("{ticker}", "{shortname}");'
         cursor.execute(get_sec_id)
 
 
