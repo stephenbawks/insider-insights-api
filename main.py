@@ -144,7 +144,7 @@ async def is_holiday():
         _type_: _description_
     """
     holidays = pathlib.Path("holidays.txt").read_text()
-    return Response(status_code=200, media_type="application/json", content=json.dumps(holidays))
+    return Response(status_code=200, media_type="application/json", content=holidays)
 
 
 
