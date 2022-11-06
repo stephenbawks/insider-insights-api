@@ -6,12 +6,12 @@ API
 
 from functools import lru_cache
 from loguru import logger
+# from supabase import create_client, Client
 import httpx
 import json
 import os
 import pathlib
 import pymysql.cursors
-from supabase import create_client, Client
 
 from datetime import date, datetime, timedelta
 from functools import lru_cache
