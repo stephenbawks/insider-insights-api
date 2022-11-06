@@ -203,6 +203,14 @@ def calculate_change_percentage(start_close_price: str, lookup_date: str, ticker
 
     print(f"Starting Close Price: {start_close_price} - Lookup Date: {lookup_date} - SEC ID: {ticker_symbol}")
 
+    onprem_historical = pymysql.connect(
+        host="69.10.161.9",
+        user="root",
+        password="r@gn@r0k10",
+        db="exofficio",
+        cursorclass=pymysql.cursors.DictCursor,
+    )
+
     with onprem_historical.cursor() as cursor:
 
         find_specific_date = f"select last from historical where ticker = '{ticker_symbol}' and date = '{lookup_date}';"
